@@ -1,4 +1,6 @@
-import client from "@/tina/__generated__/client";
+import fs from "fs";
+import path from "path";
+import matter from "gray-matter";
 import { calcReadTime } from "./format";
 
 export interface Post {
@@ -10,58 +12,54 @@ export interface Post {
 }
 
 export interface PostDetail extends Post {
-  body: any;
+  body: string;
 }
 
+const postsDirectory = path.join(process.cwd(), "content", "posts");
+
 export async function getAllPosts(): Promise<Post[]> {
-  try {
-    const postsResponse = await client.queries.postConnection({
-      sort: "date",
-    });
+  if (!fs.existsSync(postsDirectory)) return [];
+  
+  const fileNames = fs.readdirSync(postsDirectory);
+  const posts = fileNames
+    .filter((fileName) => fileName.endsWith(".md"))
+    .map((fileName) => {
+      const slug = fileName.replace(/\.md$/, "");
+      const fullPath = path.join(postsDirectory, fileName);
+      const fileContents = fs.readFileSync(fullPath, "utf8");
 
-    const posts = postsResponse.data.postConnection.edges?.map((edge) => {
-      const node = edge?.node;
-      if (!node) return null;
-
-      // Calculate read time based on raw text or stringified rich-text AST
-      const rawText = typeof node.body === "string" ? node.body : JSON.stringify(node.body || "");
+      const matterResult = matter(fileContents);
+      const { title, date, excerpt } = matterResult.data;
 
       return {
-        slug: node._sys.filename,
-        title: node.title,
-        date: node.date,
-        excerpt: node.excerpt || "",
-        readTimeMinutes: calcReadTime(rawText),
+        slug,
+        title: title || slug,
+        date: date || new Date().toISOString(),
+        excerpt: excerpt || "",
+        readTimeMinutes: calcReadTime(matterResult.content),
       };
-    }).filter(Boolean) as Post[];
+    });
 
-    // Sort descending (newest first)
-    return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  } catch (error) {
-    console.error("Error fetching posts:", error);
-    return [];
-  }
+  // Sort posts by date descending
+  return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
 export async function getPostBySlug(slug: string): Promise<PostDetail | null> {
-  try {
-    const response = await client.queries.post({ relativePath: `${slug}.md` });
-    const node = response.data.post;
+  const fullPath = path.join(postsDirectory, `${slug}.md`);
+  
+  if (!fs.existsSync(fullPath)) return null;
 
-    if (!node) return null;
+  const fileContents = fs.readFileSync(fullPath, "utf8");
+  const matterResult = matter(fileContents);
+  
+  const { title, date, excerpt } = matterResult.data;
 
-    const rawText = typeof node.body === "string" ? node.body : JSON.stringify(node.body || "");
-
-    return {
-      slug: node._sys.filename,
-      title: node.title,
-      date: node.date,
-      excerpt: node.excerpt || "",
-      readTimeMinutes: calcReadTime(rawText),
-      body: node.body,
-    };
-  } catch (error) {
-    console.error(`Error fetching post with slug ${slug}:`, error);
-    return null;
-  }
+  return {
+    slug,
+    title: title || slug,
+    date: date || new Date().toISOString(),
+    excerpt: excerpt || "",
+    readTimeMinutes: calcReadTime(matterResult.content),
+    body: matterResult.content,
+  };
 }

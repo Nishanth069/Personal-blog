@@ -1,5 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // No special image domains needed (no images in this project)
+  async rewrites() {
+    return [
+      {
+        source: '/admin',
+        destination: '/admin/index.html',
+      },
+      {
+        source: '/admin/:path*',
+        destination: '/admin/index.html',
+      },
+    ];
+  },
 };
 module.exports = nextConfig;

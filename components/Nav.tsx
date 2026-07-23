@@ -2,8 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Search from "./Search";
+import { Post } from "@/lib/posts";
 
-export default function Nav() {
+interface NavProps {
+  posts?: Post[];
+}
+
+export default function Nav({ posts = [] }: NavProps) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -12,7 +18,6 @@ export default function Nav() {
     };
 
     window.addEventListener("scroll", handleScroll);
-    // Check initial scroll position
     handleScroll();
 
     return () => window.removeEventListener("scroll", handleScroll);
@@ -20,9 +25,9 @@ export default function Nav() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 h-16 transition-all duration-300 ease-in-out ${
+      className={`fixed top-0 left-0 right-0 z-50 h-20 transition-all duration-300 ease-in-out ${
         scrolled
-          ? "bg-[rgba(9,8,12,0.85)] backdrop-blur-[12px] border-b border-border"
+          ? "bg-base/70 backdrop-blur-lg border-b border-border/50 shadow-sm"
           : "bg-transparent border-b border-transparent"
       }`}
     >
@@ -30,13 +35,16 @@ export default function Nav() {
         {/* Left side */}
         <Link
           href="/"
-          className="font-serif font-bold text-[28px] text-primary transition-colors duration-200 hover:text-accent"
+          className="font-serif font-bold text-3xl tracking-tight text-primary transition-colors duration-300 hover:text-accent flex items-baseline gap-1"
         >
           N.
+          <div className="w-2 h-2 rounded-full bg-accent animate-pulse" aria-hidden="true" />
         </Link>
 
-        {/* Right side - decorative dot */}
-        <div className="w-2 h-2 rounded-full bg-accent opacity-90" aria-hidden="true" />
+        {/* Right side - Search */}
+        <div className="flex items-center gap-4">
+          <Search posts={posts} />
+        </div>
       </div>
     </nav>
   );

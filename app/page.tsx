@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Nav from "@/components/Nav";
 import AmbientGlow from "@/components/AmbientGlow";
 import BlogCard from "@/components/BlogCard";
 import Footer from "@/components/Footer";
@@ -16,7 +15,6 @@ export default async function Home() {
 
   return (
     <>
-      <Nav />
       <main className="min-h-screen">
         {/* HERO SECTION */}
         <section className="relative overflow-hidden pt-[140px] pb-[80px]">

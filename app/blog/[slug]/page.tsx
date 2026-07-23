@@ -2,7 +2,6 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getPostBySlug, getAllPosts } from "@/lib/posts";
-import { formatDate } from "@/lib/format";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import Footer from "@/components/Footer";
 
@@ -37,60 +36,56 @@ export default async function BlogPostPage({ params }: Params) {
     notFound();
   }
 
-  // To find prev/next posts
   const allPosts = await getAllPosts();
   const currentIndex = allPosts.findIndex((p) => p.slug === post.slug);
   
-  // Since posts are sorted descending (newest first):
-  // currentIndex + 1 is an older post (Previous)
-  // currentIndex - 1 is a newer post (Next)
   const previousPost = currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : null;
   const nextPost = currentIndex > 0 ? allPosts[currentIndex - 1] : null;
 
   return (
-    <main className="min-h-screen">
-      <article>
+    <main className="min-h-screen pt-20">
+      <article className="fade-up">
         {/* POST HEADER section */}
-        <header className="max-w-[720px] mx-auto px-4 sm:px-6 pt-[120px]">
-          {/* Top Navigation */}
+        <header className="max-w-[720px] mx-auto px-4 sm:px-6 pt-16">
           <Link
             href="/"
-            className="inline-block font-sans text-[14px] text-secondary hover:text-accent transition-colors duration-200 mb-[48px]"
+            className="inline-flex items-center font-mono text-[12px] text-secondary hover:text-accent transition-colors duration-300 mb-12 uppercase tracking-[0.2em] group"
           >
-            ← All posts
+            <span className="group-hover:-translate-x-1 transition-transform duration-300 mr-2">←</span> Back Home
           </Link>
 
-          <div className="font-sans text-[13px] text-muted uppercase tracking-[0.1em]">
-            {formatDate(post.date)}
+          <div className="font-mono text-[13px] text-muted uppercase tracking-[0.1em]">
+            {new Date(post.date).toLocaleDateString("en-US", { month: 'long', day: 'numeric', year: 'numeric' })}
           </div>
           
-          <h1 className="font-serif font-bold italic text-[clamp(36px,6vw,72px)] text-primary leading-[1.05] tracking-[-0.025em] mt-4 mb-6">
+          <h1 className="font-serif font-bold italic text-[clamp(40px,7vw,80px)] text-primary leading-[1.1] tracking-[-0.02em] mt-5 mb-6">
             {post.title}
           </h1>
           
-          <div className="font-sans text-[13px] text-accent">
+          <div className="font-mono text-[13px] text-accent uppercase tracking-widest">
             {post.readTimeMinutes} min read
           </div>
           
-          <div className="border-t border-border mt-[24px] mb-[48px]" />
+          <div className="border-t border-border/60 mt-10 mb-12" />
         </header>
 
         {/* BODY content */}
-        <section className="max-w-[680px] mx-auto px-4 sm:px-6 pb-[120px]">
+        <section className="max-w-[680px] mx-auto px-4 sm:px-6 pb-24">
           <MarkdownRenderer content={post.body} />
         </section>
 
         {/* POST FOOTER nav */}
-        <nav className="max-w-[720px] mx-auto px-4 sm:px-6 pb-[80px]">
-          <div className="border-t border-border mb-[40px]" />
+        <nav className="max-w-[720px] mx-auto px-4 sm:px-6 pb-20">
+          <div className="border-t border-border/60 mb-10" />
           
           <div className="flex justify-between items-center">
             {previousPost ? (
               <Link
                 href={`/blog/${previousPost.slug}`}
-                className="font-serif font-semibold text-[17px] text-secondary hover:text-accent transition-colors duration-200"
+                className="font-serif font-semibold text-[18px] text-secondary hover:text-accent transition-colors duration-300 group flex items-center"
               >
-                ← {previousPost.title}
+                <span className="mr-3 opacity-50 group-hover:opacity-100 group-hover:-translate-x-1 transition-all">←</span> 
+                {previousPost.title}
               </Link>
             ) : (
               <div />
@@ -99,9 +94,10 @@ export default async function BlogPostPage({ params }: Params) {
             {nextPost ? (
               <Link
                 href={`/blog/${nextPost.slug}`}
-                className="font-serif font-semibold text-[17px] text-secondary hover:text-accent transition-colors duration-200 text-right"
+                className="font-serif font-semibold text-[18px] text-secondary hover:text-accent transition-colors duration-300 text-right group flex items-center"
               >
-                {nextPost.title} →
+                {nextPost.title}
+                <span className="ml-3 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all">→</span>
               </Link>
             ) : (
               <div />
